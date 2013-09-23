@@ -1101,16 +1101,16 @@ int main(int argc, char* argv[])
 					}
 					else
 					{
-						if (frame.channels() > 1)
-						{
-							cv::cvtColor(frame, gray, CV_RGB2GRAY);
-						}
-						else
-						{
-							frame.copyTo(gray);
-						}
-
-						server.writeMonoImage(gray, camSerial, timestamp, image_data, exposure);
+//						if (frame.channels() > 1)
+//						{
+//							cv::cvtColor(frame, gray, CV_RGB2GRAY);
+//						}
+//						else
+//						{
+//							frame.copyTo(gray);
+//						}
+					    // Pass on gray or color image
+						server.writeMonoImage(frame, camSerial, timestamp, image_data, exposure);
 					}
 				}
 			}
