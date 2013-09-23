@@ -15,6 +15,11 @@ INCLUDE_DIRECTORIES(.
 )
 ENDIF(DC1394_FOUND)
 
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    # Linux specific code
+    SET(LINUX_SYSTEM_FOUND true)
+ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+
 LINK_DIRECTORIES(
   ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
 )
@@ -82,15 +87,14 @@ SET_SOURCE_FILES(CAMERA_SRC_FILES
   PxStereoCamera.cc
 )
 
-IF(MVIMPACT_FOUND)
+IF(LINUX_SYSTEM_FOUND)
 SET_SOURCE_FILES(CAMERA_SRC_FILES
   ${CAMERA_SRC_FILES}
   PxBluefoxCamera.cc
   PxBluefoxCameraManager.cc
   PxBluefoxStereoCamera.cc
 )
-ADD_DEFINITIONS("-DMVIMPACT_ENABLED")
-ENDIF(MVIMPACT_FOUND)
+ENDIF(LINUX_SYSTEM_FOUND)
 
 # WARNING: Do not link mvDeviceManager and OPENCV_HIGHGUI_LIBRARY
 # to the same executable/library as there is some unknown cross-interaction
@@ -106,14 +110,14 @@ PIXHAWK_LINK_LIBRARIES(mavconn_cam
   mavconn_shm
 )
 
-IF(MVIMPACT_FOUND)
+IF(LINUX_SYSTEM_FOUND)
 MESSAGE("Bluefox support")
 PIXHAWK_LINK_LIBRARIES(mavconn_cam
   mvDeviceManager
   mvPropHandling
   mvBlueFOX
 )
-ENDIF(MVIMPACT_FOUND)
+ENDIF(LINUX_SYSTEM_FOUND)
 
 SET_TARGET_PROPERTIES(mavconn_cam PROPERTIES COMPILE_FLAGS "-D_REENTRANT")
 
