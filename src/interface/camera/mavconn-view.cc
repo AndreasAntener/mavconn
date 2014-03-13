@@ -152,14 +152,14 @@ imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
 		if (client.readKinectImage(msg, imgBayer, imgDepth))
 		{
 #ifndef NO_DISPLAY
-			cv::Mat imgColor;
+//			cv::Mat imgColor;
 
-			cv::cvtColor(imgBayer, imgColor, CV_BayerGB2BGR);
+//			cv::cvtColor(imgBayer, imgColor, CV_BayerGB2BGR);
 			cv::namedWindow("Image (Kinect Camera)");
-			cv::imshow("Image (Kinect Camera)", imgColor);
+			cv::imshow("Image (Kinect Camera)", imgBayer);
 #endif
 
-			imgColor.copyTo(imgToSave);
+			imgBayer.copyTo(imgToSave);
 		}
 	}
 
