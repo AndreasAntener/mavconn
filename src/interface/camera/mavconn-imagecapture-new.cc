@@ -556,6 +556,20 @@ static void mavlink_handler (const lcm_recv_buf_t *rbuf, const char * channel, c
 			satcount = gps.satellites_visible;
 		}
 		break;
+		case MAVLINK_MSG_ID_GLOBAL_POSITION_INT:
+                {
+                        mavlink_global_position_int_t global_position;
+                        mavlink_msg_global_position_int_decode(mavlink_msg, &global_position);
+                        lat = global_position.lat/(double)1E7;
+                        lon = global_position.lon/(double)1E7;
+                        alt = global_position.alt/(double)1E3;
+                        ground_dist = global_position.relative_alt/(double)1E3;
+                        vx = global_position.vx/(double)1E2;
+                        vy = global_position.vy/(double)1E2;
+                        vz = global_position.vz/(double)1E2;
+                }
+                break;
+
 		case MAVLINK_MSG_ID_LOCAL_POSITION_NED:
 		{
 			if (mavlink_msg->compid == imuid)
