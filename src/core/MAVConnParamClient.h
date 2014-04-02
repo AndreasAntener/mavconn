@@ -86,6 +86,30 @@ public:
 			}
 		}
 		break;
+		case MAVLINK_MSG_ID_PARAM_REQUEST_READ:
+		{
+			// Send one parameter
+			if (verbose) printf("MAVConnParamClient: Send requested parameter now..\n");
+			mavlink_param_request_read_t read;
+			mavlink_msg_param_request_read_decode(msg, &read);
+			mavlink_message_t response;
+
+			uint16_t i = 0;
+			PxParameterMap::const_iterator iter = params.begin();
+			while(iter != params.end())
+			{
+				if (i == read.param_index)
+				{
+					mavlink_message_t response;
+					mavlink_msg_param_value_pack(systemid, componentid, &response, (*iter).first.c_str(), (*iter).second, MAVLINK_TYPE_FLOAT, params.size(), i);
+					sendMAVLinkMessage(lcm, &response);
+					if (verbose) std::cout << "Sending param " << (*iter).first  << ':' << (*iter).second << std::endl;
+				}
+				i++;
+				++iter;
+			}
+		}
+		break;
 		case MAVLINK_MSG_ID_PARAM_SET:
 		{
 			mavlink_param_set_t set;

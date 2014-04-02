@@ -131,7 +131,9 @@ static void mavlink_handler (const lcm_recv_buf_t *rbuf, const char * channel,
 					|| msg->msgid == MAVLINK_MSG_ID_SYSTEM_TIME
 					|| msg->msgid == MAVLINK_MSG_ID_REQUEST_DATA_STREAM
 					|| msg->msgid == MAVLINK_MSG_ID_PARAM_REQUEST_LIST
+					|| msg->msgid == MAVLINK_MSG_ID_PARAM_REQUEST_READ
 					|| msg->msgid == MAVLINK_MSG_ID_PARAM_SET
+					|| msg->msgid == MAVLINK_MSG_ID_PARAM_VALUE
 					|| msg->msgid == MAVLINK_MSG_ID_IMAGE_TRIGGER_CONTROL
 					|| msg->msgid == MAVLINK_MSG_ID_VISION_POSITION_ESTIMATE
                     || msg->msgid == MAVLINK_MSG_ID_GLOBAL_VISION_POSITION_ESTIMATE
