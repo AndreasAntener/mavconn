@@ -95,7 +95,7 @@ IF (CMAKE_SYSTEM_PROCESSOR STREQUAL "i686" OR CMAKE_SYSTEM_PROCESSOR STREQUAL "x
 
 ELSEIF (CMAKE_SYSTEM_PROCESSOR STREQUAL "armv7l")
 
-  SET_COMPILER_FLAGS("-O2 -mtune=cortex-a8 -march=armv7-a -ftree-vectorize -mfpu=neon -fexpensive-optimizations -fomit-frame-pointer -funroll-loops -ftree-vectorizer-verbose=1 -pthread" Release CACHE)
+  SET_COMPILER_FLAGS("-O2 -mtune=cortex-a8 -march=armv7-a -ftree-vectorize -mfpu=neon -fexpensive-optimizations -fomit-frame-pointer -ftree-vectorizer-verbose=1 -pthread" Release CACHE)
 
 ENDIF ()
 
