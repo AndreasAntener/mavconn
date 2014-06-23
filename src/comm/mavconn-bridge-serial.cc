@@ -115,8 +115,8 @@ static void mavlink_handler (const lcm_recv_buf_t *rbuf, const char * channel,
 	}
 	else
 	{
-		//If msg not from system or not from IMU
-		if (!pc2serial && (msg->sysid != systemid || msg->compid != serial_compid))
+		//If msg not from system or not from IMU and not from QGC
+		if (!pc2serial && (msg->sysid != systemid || msg->compid != serial_compid) && msg->sysid != 255)
 		{
 			// Filter out debug messages
 			//
