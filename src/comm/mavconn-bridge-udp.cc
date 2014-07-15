@@ -62,7 +62,7 @@ int componentid = MAV_COMP_ID_UDP_BRIDGE;
 uint8_t mode;
 
 static GString* host = g_string_new("localhost");	///< host name for UDP server
-static GString* port = g_string_new("14550");		///< port for UDP server to open connection
+static GString* port = g_string_new("14551");		///< port for UDP server to open connection
 
 bool transmitExtended = true; ///< send extended MAVLINK messages
 bool silent; ///< silent run mode
@@ -71,7 +71,7 @@ bool emitHeartbeat; ///< tells the program to emit heart beats regularly
 bool dataOnly; ///< send only data, without video stream
 bool debug; ///< debug mode
 
-int sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 struct sockaddr_in gcAddr;
 struct sockaddr_in locAddr;
 struct sockaddr_in fromAddr;
@@ -105,7 +105,7 @@ static void mavlink_handler(const lcm_recv_buf_t *rbuf, const char * channel,
 	static uint8_t buf[MAVLINK_MAX_PACKET_LEN];
 	uint32_t messageLength = mavlink_msg_to_send_buffer(buf, msg);
 	int bytesToSend = 0;
-	
+
 	if (msg->msgid != MAVLINK_MSG_ID_EXTENDED_MESSAGE)
 	{
 		if (verbose)
@@ -182,7 +182,7 @@ static void mavlink_handler(const lcm_recv_buf_t *rbuf, const char * channel,
 	}
 	else
 	{
-		if (debug) fprintf(stderr, "SENT %d BYTES OVER UDP TO %s:%s", bytes_sent, host->str, port->str);
+		if (debug) fprintf(stderr, "SENT %d BYTES OVER UDP TO %s:%s\n", bytes_sent, host->str, port->str);
 	}
 }
 
@@ -279,7 +279,7 @@ int main(int argc, char* argv[])
 	memset(&locAddr, 0, sizeof(locAddr));
 	locAddr.sin_family = AF_INET;
 	locAddr.sin_addr.s_addr = INADDR_ANY;
-	locAddr.sin_port = htons(0);//htons(14551);
+	locAddr.sin_port = htons(14551);//htons(14551);
 
 	/* Bind the socket to port 14551 - necessary to receive packets from qgroundcontrol */
 	if ((int)-1 == bind(sock, (struct sockaddr *) &locAddr, sizeof(struct sockaddr)))
