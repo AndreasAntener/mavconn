@@ -143,7 +143,9 @@ static void mavlink_handler (const lcm_recv_buf_t *rbuf, const char * channel,
 					|| msg->msgid == MAVLINK_MSG_ID_SET_LOCAL_POSITION_SETPOINT
 					|| msg->msgid == MAVLINK_MSG_ID_SET_GLOBAL_POSITION_SETPOINT_INT
                     || msg->msgid == MAVLINK_MSG_ID_SET_POSITION_CONTROL_OFFSET
-                    || msg->msgid == MAVLINK_MSG_ID_OPTICAL_FLOW) {
+                    || msg->msgid == MAVLINK_MSG_ID_OPTICAL_FLOW
+                    || msg->msgid == MAVLINK_MSG_ID_DATA_TRANSMISSION_HANDSHAKE
+                    || msg->msgid == MAVLINK_MSG_ID_ENCAPSULATED_DATA) {
 				if (verbose || debug)
 					std::cout << std::dec
 							<< "Received and forwarded LCM message with id "
