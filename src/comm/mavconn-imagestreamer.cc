@@ -85,8 +85,9 @@ static void image_handler (const lcm_recv_buf_t *rbuf, const char * channel, con
 	std::vector<px::SHMImageClient>* clientVec = reinterpret_cast< std::vector<px::SHMImageClient>* >(user);
 
 	// Temporary memory for raw camera image
-	cv::Mat img( 480, 640, CV_8UC1 );
-	cv::Mat img2( 480, 640, CV_8UC1 );	// img2 not used.
+	cv::Mat img;
+	//cv::Mat img( 480, 640, CV_8UC1 );
+	//cv::Mat img2( 480, 640, CV_8UC1 );	// img2 not used.
 
 	for(size_t i = 0; i < clientVec->size(); ++i){
 		px::SHMImageClient& client = clientVec->at(i);
@@ -99,21 +100,23 @@ static void image_handler (const lcm_recv_buf_t *rbuf, const char * channel, con
 	if (camId != 0)
 	{
 		// Copy one image from shared buffer
-		if (!client.readStereoImage(msg, img, img2))
-		{
+		//if (!client.readStereoImage(msg, img, img2))
+		//{
 			if(!client.readMonoImage(msg,img))
 			{
 				continue;
 			}
-		}
+			//std::cout << "Size: " << img.size() << " Channels: " << img.channels() << std::endl;
+		//}
 
 		captureImage = false;
 
 		// Check for valid jpg_quality in request and adjust if necessary
-		if (req.jpg_quality < 1 && req.jpg_quality > 100)
-		{
-			req.jpg_quality = 100;
-		}
+		//if (req.jpg_quality < 1 && req.jpg_quality > 100)
+		//{
+		//	req.jpg_quality = 100;
+		//}
+		req.jpg_quality = 50;
 
 		// Encode image as JPEG
 		vector<uint8_t> jpg; ///< container for JPEG image data
@@ -129,8 +132,8 @@ static void image_handler (const lcm_recv_buf_t *rbuf, const char * channel, con
 		if (ack.size % PACKET_PAYLOAD) { ++ack.packets; } // one more packet with the rest of data
 		ack.payload = static_cast<uint8_t>( PACKET_PAYLOAD );
 		ack.jpg_quality = req.jpg_quality;
-		ack.width = 640;
-		ack.height = 480;
+		ack.width = 1280;
+		ack.height = 960;
 
 		mavlink_msg_data_transmission_handshake_encode(sysid, compid, &tmp, &ack);
 		sendMAVLinkMessage(lcmMavlink, &tmp);
