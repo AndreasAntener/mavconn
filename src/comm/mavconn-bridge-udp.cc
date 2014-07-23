@@ -63,6 +63,7 @@ uint8_t mode;
 
 static GString* host = g_string_new("localhost");	///< host name for UDP server
 static GString* port = g_string_new("14551");		///< port for UDP server to open connection
+static GString* localport = g_string_new("0");		///< local port for UDP server to open connection
 
 bool transmitExtended = true; ///< send extended MAVLINK messages
 bool silent; ///< silent run mode
@@ -70,6 +71,7 @@ bool verbose; ///< verbose run mode
 bool emitHeartbeat; ///< tells the program to emit heart beats regularly
 bool dataOnly; ///< send only data, without video stream
 bool debug; ///< debug mode
+bool gcs; ///< connected to GCS (ground control station), don't forward messages
 
 int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 struct sockaddr_in gcAddr;
@@ -228,7 +230,11 @@ void* udp_wait(void* lcm_ptr)
 					printf("\n(SYS: %d/COMP: %d/UDP) Received message with ID %u from UDP with %i payload bytes and %i total length\n",
 							msg.sysid, msg.compid, msg.msgid, msg.len, recsize);
 				}
-				sendMAVLinkMessage(lcm, &msg);
+				// Don't forward messages from GCS if connected to GCS
+				if (!(gcs && msg.sysid == 255))
+				{
+					sendMAVLinkMessage(lcm, &msg);
+				}
 			}
 		}
 
@@ -245,10 +251,12 @@ int main(int argc, char* argv[])
 			{ "compid", 'c', 0, G_OPTION_ARG_INT, &componentid, "ID of this component", NULL },
 			{ "host", 'r', 0, G_OPTION_ARG_STRING, host, "Remote host", host->str },
 			{ "port", 'p', 0, G_OPTION_ARG_STRING, port, "Remote port", port->str },
+			{ "localport", 'p', 0, G_OPTION_ARG_STRING, localport, "Local port", localport->str },
 			{ "extended", 'e', 0, G_OPTION_ARG_NONE, &transmitExtended, "Transmit extended MAVLINK messages", "true" },
 			{ "silent", 's', 0, G_OPTION_ARG_NONE, &silent, "Be silent", NULL },
 			{ "verbose", 'v', 0, G_OPTION_ARG_NONE, &verbose, "Be verbose", NULL },
 			{ "debug", 'd', 0, G_OPTION_ARG_NONE, &debug, "Debug mode, changes behaviour", NULL },
+			{ "gcs", 'g', 0, G_OPTION_ARG_NONE, &gcs, "Connected to GCS, don't forward GCS packets to itself", NULL },
 			{ NULL }
 	};
 
@@ -279,9 +287,9 @@ int main(int argc, char* argv[])
 	memset(&locAddr, 0, sizeof(locAddr));
 	locAddr.sin_family = AF_INET;
 	locAddr.sin_addr.s_addr = INADDR_ANY;
-	locAddr.sin_port = htons(14551);//htons(14551);
+	locAddr.sin_port = htons(atoi(localport->str)); //htons(14550);
 
-	/* Bind the socket to port 14551 - necessary to receive packets from qgroundcontrol */
+	/* Bind the socket to port 14550 - necessary to receive packets from qgroundcontrol */
 	if ((int)-1 == bind(sock, (struct sockaddr *) &locAddr, sizeof(struct sockaddr)))
 	{
 		perror("error bind failed");
