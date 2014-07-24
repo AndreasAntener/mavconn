@@ -57,7 +57,7 @@
 #include "mavconn.h"
 
 // Settings
-int systemid = getSystemID();
+int systemid = 42; //getSystemID();
 int componentid = MAV_COMP_ID_UDP_BRIDGE;
 uint8_t mode;
 
@@ -71,7 +71,7 @@ bool verbose; ///< verbose run mode
 bool emitHeartbeat; ///< tells the program to emit heart beats regularly
 bool dataOnly; ///< send only data, without video stream
 bool debug; ///< debug mode
-bool gcs; ///< connected to GCS (ground control station), don't forward messages
+bool offboardLink; ///< connected to an offboard system such as a ground control station
 
 int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 struct sockaddr_in gcAddr;
@@ -107,6 +107,17 @@ static void mavlink_handler(const lcm_recv_buf_t *rbuf, const char * channel,
 	static uint8_t buf[MAVLINK_MAX_PACKET_LEN];
 	uint32_t messageLength = mavlink_msg_to_send_buffer(buf, msg);
 	int bytesToSend = 0;
+
+    // when used as a offboard link, don't handle anything not having the local system ID
+    if (offboardLink && (msg->sysid != systemid))
+    {
+        printf("Dropping from sysid: %d, systemid: %d\n", msg->sysid, systemid);
+        return;
+    }
+    else
+    {
+        printf("Keeping from sysid: %d\n", msg->sysid);
+    }
 
 	if (msg->msgid != MAVLINK_MSG_ID_EXTENDED_MESSAGE)
 	{
@@ -230,11 +241,7 @@ void* udp_wait(void* lcm_ptr)
 					printf("\n(SYS: %d/COMP: %d/UDP) Received message with ID %u from UDP with %i payload bytes and %i total length\n",
 							msg.sysid, msg.compid, msg.msgid, msg.len, recsize);
 				}
-				// Don't forward messages from GCS if connected to GCS
-				if (!(gcs && msg.sysid == 255))
-				{
-					sendMAVLinkMessage(lcm, &msg);
-				}
+                sendMAVLinkMessage(lcm, &msg);
 			}
 		}
 
@@ -256,9 +263,10 @@ int main(int argc, char* argv[])
 			{ "silent", 's', 0, G_OPTION_ARG_NONE, &silent, "Be silent", NULL },
 			{ "verbose", 'v', 0, G_OPTION_ARG_NONE, &verbose, "Be verbose", NULL },
 			{ "debug", 'd', 0, G_OPTION_ARG_NONE, &debug, "Debug mode, changes behaviour", NULL },
-			{ "gcs", 'g', 0, G_OPTION_ARG_NONE, &gcs, "Connected to GCS, don't forward GCS packets to itself", NULL },
-			{ NULL }
+			{ "offboard", 'f', 0, G_OPTION_ARG_NONE, &offboardLink, "Connected to an offboard system", NULL },
+            { NULL },
 	};
+
 
 	GError *error = NULL;
 	GOptionContext *context;
