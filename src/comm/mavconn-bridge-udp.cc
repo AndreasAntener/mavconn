@@ -111,12 +111,12 @@ static void mavlink_handler(const lcm_recv_buf_t *rbuf, const char * channel,
     // when used as a offboard link, don't handle anything not having the local system ID
     if (offboardLink && (msg->sysid != systemid))
     {
-        printf("Dropping from sysid: %d, systemid: %d\n", msg->sysid, systemid);
+        if (debug) printf("Dropping from sysid: %d, systemid: %d\n", msg->sysid, systemid);
         return;
     }
     else
     {
-        printf("Keeping from sysid: %d\n", msg->sysid);
+        if (debug) printf("Keeping from sysid: %d\n", msg->sysid);
     }
 
 	if (msg->msgid != MAVLINK_MSG_ID_EXTENDED_MESSAGE)
