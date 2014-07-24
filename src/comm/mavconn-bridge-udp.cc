@@ -251,7 +251,7 @@ int main(int argc, char* argv[])
 			{ "compid", 'c', 0, G_OPTION_ARG_INT, &componentid, "ID of this component", NULL },
 			{ "host", 'r', 0, G_OPTION_ARG_STRING, host, "Remote host", host->str },
 			{ "port", 'p', 0, G_OPTION_ARG_STRING, port, "Remote port", port->str },
-			{ "localport", 'p', 0, G_OPTION_ARG_STRING, localport, "Local port", localport->str },
+			{ "localport", 'l', 0, G_OPTION_ARG_STRING, localport, "Local port", localport->str },
 			{ "extended", 'e', 0, G_OPTION_ARG_NONE, &transmitExtended, "Transmit extended MAVLINK messages", "true" },
 			{ "silent", 's', 0, G_OPTION_ARG_NONE, &silent, "Be silent", NULL },
 			{ "verbose", 'v', 0, G_OPTION_ARG_NONE, &verbose, "Be verbose", NULL },
