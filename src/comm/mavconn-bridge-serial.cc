@@ -81,6 +81,7 @@ bool emitHeartbeat;       ///< Generate a heartbeat with this process
 bool debug;               ///< Enable debug functions and output
 bool test;                ///< Enable test mode
 bool pc2serial;			  ///< Enable PC to serial push mode (send more stuff from pc over serial)
+int ignoreCompid;	  ///< Don't forward messages to serial from this component ID, 0 to disable
 
 lcm_t* lcm;               ///< Reference to LCM bus
 
@@ -144,8 +145,9 @@ static void mavlink_handler (const lcm_recv_buf_t *rbuf, const char * channel,
 					|| msg->msgid == MAVLINK_MSG_ID_SET_GLOBAL_POSITION_SETPOINT_INT
                     || msg->msgid == MAVLINK_MSG_ID_SET_POSITION_CONTROL_OFFSET
                     || msg->msgid == MAVLINK_MSG_ID_OPTICAL_FLOW
-                    || msg->msgid == MAVLINK_MSG_ID_DATA_TRANSMISSION_HANDSHAKE
-                    || msg->msgid == MAVLINK_MSG_ID_ENCAPSULATED_DATA) {
+                    //|| msg->msgid == MAVLINK_MSG_ID_DATA_TRANSMISSION_HANDSHAKE
+                    //|| msg->msgid == MAVLINK_MSG_ID_ENCAPSULATED_DATA
+		    ) {
 				if (verbose || debug)
 					std::cout << std::dec
 							<< "Received and forwarded LCM message with id "
@@ -164,7 +166,8 @@ static void mavlink_handler (const lcm_recv_buf_t *rbuf, const char * channel,
 			}
 		}
 
-		if (pc2serial && msg->sysid == systemid && (
+		// XXX: forward commands from grounstation to FMU
+		if (pc2serial && (msg->sysid == systemid || msg->sysid == 255) && (
 			   msg->msgid == MAVLINK_MSG_ID_MISSION_ITEM
 			|| msg->msgid == MAVLINK_MSG_ID_MISSION_ACK
 			|| msg->msgid == MAVLINK_MSG_ID_MISSION_CLEAR_ALL
@@ -177,6 +180,10 @@ static void mavlink_handler (const lcm_recv_buf_t *rbuf, const char * channel,
 			|| msg->msgid == MAVLINK_MSG_ID_SET_GPS_GLOBAL_ORIGIN
 			|| msg->msgid == MAVLINK_MSG_ID_GPS_GLOBAL_ORIGIN
 			|| msg->msgid == MAVLINK_MSG_ID_HEARTBEAT
+			|| msg->msgid == MAVLINK_MSG_ID_COMMAND_LONG
+			|| msg->msgid == MAVLINK_MSG_ID_PARAM_REQUEST_LIST
+			|| msg->msgid == MAVLINK_MSG_ID_PARAM_REQUEST_READ
+			|| msg->msgid == MAVLINK_MSG_ID_PARAM_SET
 			|| msg->msgid == MAVLINK_MSG_ID_PARAM_VALUE
 			|| msg->msgid == MAVLINK_MSG_ID_STATUSTEXT
 			|| msg->msgid == MAVLINK_MSG_ID_COMMAND_ACK
@@ -191,7 +198,10 @@ static void mavlink_handler (const lcm_recv_buf_t *rbuf, const char * channel,
 			|| msg->msgid == MAVLINK_MSG_ID_GLOBAL_POSITION_INT
 			|| msg->msgid == MAVLINK_MSG_ID_LOCAL_POSITION_NED
 			|| msg->msgid == MAVLINK_MSG_ID_LOCAL_POSITION_SETPOINT
-			|| msg->msgid == MAVLINK_MSG_ID_ATTITUDE))
+			|| msg->msgid == MAVLINK_MSG_ID_ATTITUDE)
+		// and ignore msg with component ID of ignoreCompid
+		    && !(ignoreCompid != 0 && ignoreCompid == msg->compid)
+		   )
 		{
 			if (verbose || debug)
 					std::cout << std::dec
@@ -552,6 +562,7 @@ int main(int argc, char* argv[])
 		("verbose,v", config::bool_switch(&verbose)->default_value(false), "verbose output")
 		("debug,d", config::bool_switch(&debug)->default_value(false), "Emit debug information")
 		("pc2serial", config::bool_switch(&pc2serial)->default_value(false), "Send more status information from PC over serial (for second XBee mode)")
+		("ignorecompid,i", config::value<int>(&ignoreCompid)->default_value(0), "Component ID not to forward over serial")
 		;
 	config::variables_map vm;
 	config::store(config::parse_command_line(argc, argv, desc), vm);
