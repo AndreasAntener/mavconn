@@ -47,7 +47,8 @@ This file is part of the PIXHAWK project
 
 bool verbose = false;
 bool emitDelay = false;
-int compid = 2;
+uint32_t sysid = 42; //XXX: hack
+uint32_t compid = 200;
 std::string configFile;		///< Configuration file for parameters
 
 MAVConnParamClient* paramClient;
@@ -274,6 +275,8 @@ int main(int argc, char* argv[])
 									("verbose,v", config::bool_switch(&verbose)->default_value(false), "Verbose output")
 									("delay", config::bool_switch(&emitDelay)->default_value(false), "emit Delays as debug message")
 									("config", config::value<std::string>(&configFile)->default_value("config/parameters_camera.cfg"), "Config file for parameters")
+									("sysid,s", config::value<uint32_t>(&sysid)->default_value(42), "System ID")
+									("compid,c", config::value<uint32_t>(&compid)->default_value(200), "Component ID")
 									;
 	config::variables_map vm;
 	config::store(config::parse_command_line(argc, argv, desc), vm);
@@ -347,7 +350,7 @@ int main(int argc, char* argv[])
 		processingDoneCond = new Glib::Cond;
 	}
 
-    paramClient = new MAVConnParamClient(getSystemID(), compid, lcm, configFile, verbose);
+    paramClient = new MAVConnParamClient(sysid, compid, lcm, configFile, verbose);
     paramClient->setParamValue("MINIMGINTERVAL", 0);
     paramClient->setParamValue("EXPOSURE", exposure);
     paramClient->setParamValue("GAIN", gain);
@@ -439,7 +442,7 @@ int main(int argc, char* argv[])
 	}
 
 	px::SHMImageServer server;
-	server.init(getSystemID(), PX_COMP_ID_CAMERA, lcm, cam, camRight);
+	server.init(sysid, PX_COMP_ID_CAMERA, lcm, cam, camRight);
 
 	// Disable trigger
 	if (!verbose)
@@ -453,7 +456,7 @@ int main(int argc, char* argv[])
 		for (int i = 0; i < 2; i++)
 		{
 			mavlink_message_t triggerMsg;
-			mavlink_msg_image_trigger_control_pack(getSystemID(), PX_COMP_ID_CAMERA, &triggerMsg, 0);
+			mavlink_msg_image_trigger_control_pack(sysid, PX_COMP_ID_CAMERA, &triggerMsg, 0);
 			sendMAVLinkMessage(lcm, &triggerMsg);
 		}
 	}
@@ -566,7 +569,7 @@ int main(int argc, char* argv[])
 		{
 			// Re-enable trigger, as the camera interface is now ready to capture frames
 			mavlink_message_t triggerMsg;
-			mavlink_msg_image_trigger_control_pack(getSystemID(), PX_COMP_ID_CAMERA, &triggerMsg, 1);
+			mavlink_msg_image_trigger_control_pack(sysid, PX_COMP_ID_CAMERA, &triggerMsg, 1);
 			sendMAVLinkMessage(lcm, &triggerMsg);
 			if (!verbose)
 			{
@@ -1013,7 +1016,7 @@ int main(int argc, char* argv[])
 							if (emitDelay)
 							{
 								mavlink_message_t msg;
-								mavlink_msg_debug_vect_pack(getSystemID(), 9, &msg, "CAM", lastShutter, (float)(timestamp - lastShutter)/1000.f, 0.f, 0.f);
+								mavlink_msg_debug_vect_pack(sysid, 9, &msg, "CAM", lastShutter, (float)(timestamp - lastShutter)/1000.f, 0.f, 0.f);
 								sendMAVLinkMessage(lcm, &msg);
 							}
 
@@ -1034,7 +1037,7 @@ int main(int argc, char* argv[])
 							if (emitDelay)
 							{
 								mavlink_message_t msg;
-								mavlink_msg_debug_vect_pack(getSystemID(), 9, &msg, "CAM", lastShutter, -(float)(lastShutter - timestamp)/1000.f, 0.f, 0.f);
+								mavlink_msg_debug_vect_pack(sysid, 9, &msg, "CAM", lastShutter, -(float)(lastShutter - timestamp)/1000.f, 0.f, 0.f);
 								sendMAVLinkMessage(lcm, &msg);
 							}
 
