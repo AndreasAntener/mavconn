@@ -116,7 +116,7 @@ static void image_handler (const lcm_recv_buf_t *rbuf, const char * channel, con
 		//{
 		//	req.jpg_quality = 100;
 		//}
-		req.jpg_quality = 50;
+		req.jpg_quality = 25;
 
 		// Encode image as JPEG
 		vector<uint8_t> jpg; ///< container for JPEG image data
@@ -216,7 +216,7 @@ void* lcm_image_wait(void* lcm_ptr)
 {
 	lcm_t* lcm = (lcm_t*)lcm_ptr;
 	while(1)
-	{	
+	{
 		lcm_handle(lcm);
 	}
 	return NULL;
