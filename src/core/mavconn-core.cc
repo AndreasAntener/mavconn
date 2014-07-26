@@ -33,7 +33,8 @@ This file is part of the MAVCONN project
 // BOOST includes
 
 #include <cstdio>
-#include <iostream>
+#include <errno.h>
+#include <unistd.h>
 #include <glib.h>
 #include <stdio.h>
 #include <glibtop.h>
@@ -51,6 +52,8 @@ This file is part of the MAVCONN project
 
 // For uptime
 #include <sys/sysinfo.h>
+// For remaining diskspace
+#include <sys/statvfs.h>
 
 // Timer for benchmarking
 struct timeval tv;
@@ -281,6 +284,70 @@ void* lcm_wait(void* lcm_ptr)
 	return NULL;
 				}
 
+// Return values:
+// -1 for Not available (unknown)
+// 0 for error
+// 1 for Read only
+// 2 for read and write
+int check_filesystem()
+{
+	// XXX path is hardcoded for now
+	char *path = "/home/fang/mavconn-testfile.txt";
+	int rval;
+
+	/* Check file existence. */
+	rval = access (path, F_OK);
+	if (rval == 0)
+	{
+		if (debug) printf ("%s exists\n", path);
+	}
+	else
+	{
+		if (errno == ENOENT)
+		{
+			if (debug) printf ("%s does not exist\n", path);
+			return 0;
+		}
+		else if (errno == EACCES)
+		{
+			if (debug) printf ("%s is not accessible\n", path);
+			return 0;
+		}
+	}
+
+	/* Check read access. */
+	rval = access (path, R_OK);
+	if (rval == 0)
+	{
+		if (debug) printf ("%s is readable\n", path);
+	}
+	else
+	{
+		if (debug) printf ("%s is not readable (access denied)\n", path);
+		return 0;
+	}
+
+	/* Check write access. */
+	rval = access (path, W_OK);
+	if (rval == 0)
+	{
+		if (debug) printf ("%s is writable\n", path);
+		return 2;
+	}
+	else if (errno == EACCES)
+	{
+		if (debug) printf ("%s is not writable (access denied)\n", path);
+		return 0;
+	}
+	else if (errno == EROFS)
+	{
+		if (debug) printf ("%s is not writable (read-only filesystem)\n", path);
+		return 1;
+	}
+	return 0;
+}
+
+
 int main (int argc, char ** argv)
 {
 	// Handling Program options
@@ -412,6 +479,18 @@ int main (int argc, char ** argv)
 				struct sysinfo info;
 				sysinfo(&info);
 
+				int disk_health = check_filesystem();
+
+				struct statvfs fiData;
+				// XXX: directory hardcoded for now
+				statvfs("/home/fang",&fiData);
+				float disk_usage_percent = ((float)(fiData.f_blocks - fiData.f_bfree)/(float)fiData.f_blocks)*100.0f;
+				float disk_usage_gb = ((float)(fiData.f_blocks - fiData.f_bfree)*fiData.f_bsize)/1024/1024/1024;
+
+				cout << "\nBlock size: "<< fiData.f_bsize;
+				cout << "\nTotal no blocks: "<< fiData.f_blocks;
+				cout << "\nFree blocks: "<< fiData.f_bfree;
+
 				if (verbose)
 				{
 					printf("CPU TYPE INFORMATIONS \n\n"
@@ -452,18 +531,33 @@ int main (int argc, char ** argv)
 
 					int which = 0, arg = 0;
 					glibtop_get_proclist(&proclist,which,arg);
-					printf("%ld\n%ld\n%ld\n",
-							(unsigned long)proclist.number,
-							(unsigned long)proclist.total,
-							(unsigned long)proclist.size);
+					// printf("%ld\n%ld\n%ld\n",
+					// 		(unsigned long)proclist.number,
+					// 		(unsigned long)proclist.total,
+					// 		(unsigned long)proclist.size);
 
 					printf("UPTIME: %ld s\n\n", info.uptime);
+
+					printf("Filesystem: %d\n\n", disk_health);
+
+					printf("Disk usage: %f %%\n\n", disk_usage_percent);
+					printf("Disk usage: %f GiB\n\n", disk_usage_gb);
 				}
 
-				// mavlink_message_t msg;
-				// // Pack message and get size of encoded byte string
-				// mavlink_msg_onboard_health_pack(systemid, compid, &msg, 0, (int)(cpu.total*100), );
-				// sendMAVLinkMessage(lcm, &msg);
+				uint8_t load_percent_arr[4] = {(uint8_t)(load_percent), 0, 0, 0};
+
+				mavlink_message_t msg;
+				// Pack message and get size of encoded byte string
+				mavlink_msg_onboard_health_pack(systemid, compid, &msg, (uint32_t)info.uptime,
+											(uint16_t)cpu.frequency,
+											load_percent_arr,
+											(uint8_t)memory_percent,
+											(int8_t)disk_health,
+											(uint8_t)disk_usage_percent,
+											disk_usage_gb,
+											-1.0f,
+											-1.0f);
+				sendMAVLinkMessage(lcm, &msg);
 
 			}
 		}
