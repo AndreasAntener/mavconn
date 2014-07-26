@@ -49,6 +49,9 @@ This file is part of the MAVCONN project
 #include <sys/time.h>
 #include <time.h>
 
+// For uptime
+#include <sys/sysinfo.h>
+
 // Timer for benchmarking
 struct timeval tv;
 
@@ -370,6 +373,8 @@ int main (int argc, char ** argv)
 				//set cpu to always full power
 				system("echo performance > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor");
 				system("echo performance > /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor");
+				system("echo performance > /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor");
+				system("echo performance > /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor");
 			}
 
 			// SEND OUT TIME MESSAGE
@@ -397,12 +402,15 @@ int main (int argc, char ** argv)
 				// GET SYSTEM INFORMATION
 				glibtop_get_cpu (&cpu);
 				glibtop_get_mem(&memory);
-				float load = ((float)(cpu.total-old_total)-(float)(cpu.idle-old_idle)) / (float)(cpu.total-old_total);
-//				mavlink_msg_debug_pack(systemid, compid, &msg, 101, load*100.f);
-//				sendMAVLinkMessage(lcm, &msg);
-				// FIXME V10
+				float load_percent = ((float)(cpu.total-old_total)-(float)(cpu.idle-old_idle))
+					/ (float)(cpu.total-old_total) * 100.0f;
 				old_total = cpu.total;
 				old_idle = cpu.idle;
+
+				float memory_percent = ((float)memory.used/(float)memory.total) * 100.0f;
+
+				struct sysinfo info;
+				sysinfo(&info);
 
 				if (verbose)
 				{
@@ -420,17 +428,17 @@ int main (int argc, char ** argv)
 							(unsigned long)cpu.idle,
 							(unsigned long)cpu.frequency);
 
-					printf("\nLOAD: %f %%\n\n", load*100.0f);
+					printf("\nLOAD: %f %%\n\n", load_percent);
 
 					printf("\nMEMORY USING\n\n"
-							"Memory Total : %ld MB\n"
-							"Memory Used : %ld MB\n"
-							"Memory Free : %ld MB\n"
-							"Memory Shared: %ld MB\n"
-							"Memory Buffered : %ld MB\n"
-							"Memory Cached : %ld MB\n"
-							"Memory user : %ld MB\n"
-							"Memory Locked : %ld MB\n",
+							"Memory Total : %ld MiB\n"
+							"Memory Used : %ld MiB\n"
+							"Memory Free : %ld MiB\n"
+							"Memory Shared: %ld MiB\n"
+							"Memory Buffered : %ld MiB\n"
+							"Memory Cached : %ld MiB\n"
+							"Memory user : %ld MiB\n"
+							"Memory Locked : %ld MiB\n",
 							(unsigned long)memory.total/(1024*1024),
 							(unsigned long)memory.used/(1024*1024),
 							(unsigned long)memory.free/(1024*1024),
@@ -440,13 +448,23 @@ int main (int argc, char ** argv)
 							(unsigned long)memory.user/(1024*1024),
 							(unsigned long)memory.locked/(1024*1024));
 
+					printf("MEMORY: %f %%\n\n", memory_percent);
+
 					int which = 0, arg = 0;
 					glibtop_get_proclist(&proclist,which,arg);
 					printf("%ld\n%ld\n%ld\n",
 							(unsigned long)proclist.number,
 							(unsigned long)proclist.total,
 							(unsigned long)proclist.size);
+
+					printf("UPTIME: %ld s\n\n", info.uptime);
 				}
+
+				// mavlink_message_t msg;
+				// // Pack message and get size of encoded byte string
+				// mavlink_msg_onboard_health_pack(systemid, compid, &msg, 0, (int)(cpu.total*100), );
+				// sendMAVLinkMessage(lcm, &msg);
+
 			}
 		}
 
