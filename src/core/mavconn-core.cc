@@ -40,7 +40,9 @@ This file is part of the MAVCONN project
 #include <glibtop.h>
 #include <glibtop/cpu.h>
 #include <glibtop/mem.h>
+#include <glibtop/swap.h>
 #include <glibtop/proclist.h>
+#include <glibtop/netload.h>
 
 // MAVLINK message format includes
 #include "mavconn.h"
@@ -415,7 +417,15 @@ int main (int argc, char ** argv)
 
 	glibtop_cpu cpu;
 	glibtop_mem memory;
+	glibtop_swap swap;
 	glibtop_proclist proclist;
+	glibtop_netload netload;
+
+	const char *net_device = "eth0";
+
+	glibtop_get_netload(&netload, net_device);
+	uint64_t old_bytes_in = netload.bytes_in;
+	uint64_t old_bytes_out = netload.bytes_out;
 
 	glibtop_get_cpu (&cpu);
 	uint64_t old_total = cpu.total;
@@ -469,12 +479,22 @@ int main (int argc, char ** argv)
 				// GET SYSTEM INFORMATION
 				glibtop_get_cpu (&cpu);
 				glibtop_get_mem(&memory);
+				glibtop_get_swap(&swap);
+				glibtop_get_netload(&netload, net_device);
 				float load_percent = ((float)(cpu.total-old_total)-(float)(cpu.idle-old_idle))
 					/ (float)(cpu.total-old_total) * 100.0f;
 				old_total = cpu.total;
 				old_idle = cpu.idle;
 
 				float memory_percent = ((float)memory.used/(float)memory.total) * 100.0f;
+
+				float swap_percent = ((float)swap.used/(float)swap.total) * 100.0f;
+
+				float bytes_per_s_in = (float)(netload.bytes_in - old_bytes_in)/1024.0f;
+				float bytes_per_s_out = (float)(netload.bytes_out - old_bytes_out)/1024.0f;
+
+				old_bytes_in = netload.bytes_in;
+				old_bytes_out = netload.bytes_out;
 
 				struct sysinfo info;
 				sysinfo(&info);
@@ -486,10 +506,20 @@ int main (int argc, char ** argv)
 				statvfs("/home/fang",&fiData);
 				float disk_usage_percent = ((float)(fiData.f_blocks - fiData.f_bfree)/(float)fiData.f_blocks)*100.0f;
 				float disk_usage_gb = ((float)(fiData.f_blocks - fiData.f_bfree)*fiData.f_bsize)/1024/1024/1024;
+				float disk_total_gb = ((float)fiData.f_blocks*fiData.f_bsize)/1024/1024/1024;
+
 
 				cout << "\nBlock size: "<< fiData.f_bsize;
 				cout << "\nTotal no blocks: "<< fiData.f_blocks;
 				cout << "\nFree blocks: "<< fiData.f_bfree;
+
+				// get temperature on Odroid XU
+				ifstream rawavg("/sys/devices/virtual/thermal/thermal_zone0/temp");
+				string temp;
+				getline(rawavg, temp);
+				float temp_c = (float)(atoi(temp.c_str())/1000);
+				rawavg.close();
+
 
 				if (verbose)
 				{
@@ -529,6 +559,16 @@ int main (int argc, char ** argv)
 
 					printf("MEMORY: %f %%\n\n", memory_percent);
 
+					printf("\nSWAP\n\n"
+							"Swap Total : %ld MiB\n"
+							"Swap Used : %ld MiB\n"
+							"Swap Free : %ld MiB\n",
+							(unsigned long)swap.total/(1024*1024),
+							(unsigned long)swap.used/(1024*1024),
+							(unsigned long)swap.free/(1024*1024));
+
+					printf("SWAP: %f %%\n\n", swap_percent);
+
 					int which = 0, arg = 0;
 					glibtop_get_proclist(&proclist,which,arg);
 					// printf("%ld\n%ld\n%ld\n",
@@ -542,21 +582,28 @@ int main (int argc, char ** argv)
 
 					printf("Disk usage: %f %%\n\n", disk_usage_percent);
 					printf("Disk usage: %f GiB\n\n", disk_usage_gb);
-				}
 
-				uint8_t load_percent_arr[4] = {(uint8_t)(load_percent), 0, 0, 0};
+					printf("TEMP: %f deg C\n\n", (float)(temp_c));
+
+					printf("NETLOAD: in: %f KiB/s, out: %f KiB/s\n\n", bytes_per_s_in, bytes_per_s_out);
+				}
 
 				mavlink_message_t msg;
 				// Pack message and get size of encoded byte string
 				mavlink_msg_onboard_health_pack(systemid, compid, &msg, (uint32_t)info.uptime,
 											(uint16_t)cpu.frequency,
-											load_percent_arr,
+											(uint8_t)load_percent,
 											(uint8_t)memory_percent,
+											((float)memory.total)/1024.0f/1024.0f/1024.0f,
+											(uint8_t)swap_percent,
+											((float)swap.total)/1024.0f/1024.0f/1024.0f,
 											(int8_t)disk_health,
 											(uint8_t)disk_usage_percent,
-											disk_usage_gb,
+											disk_total_gb,
+											temp_c,
 											-1.0f,
-											-1.0f);
+											bytes_per_s_in,
+											bytes_per_s_out);
 				sendMAVLinkMessage(lcm, &msg);
 
 			}
