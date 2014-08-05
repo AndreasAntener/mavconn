@@ -30,6 +30,7 @@ private:
     bool setGain(uint32_t gain);
     bool setGainDB(float gain_dB);
     bool setPixelClock(uint32_t pixelClockKHz);
+    bool setDesiredAverageGreyValue(uint32_t greyValue);
 
     float getFramesPerSecond(void);
 

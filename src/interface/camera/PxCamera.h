@@ -23,7 +23,8 @@ public:
 				   uint32_t _gain = 120,
 				   uint32_t _gamma = 0,
 				   uint32_t _brightness = 2047,
-				   uint32_t _pixelClockKHz = 12000)
+				   uint32_t _pixelClockKHz = 12000,
+				   uint32_t _desiredAverageGreyValue = 100)
 	 : mode(_mode)
 	 , frameRate(_frameRate)
 	 , externalTrigger(_externalTrigger)
@@ -32,6 +33,7 @@ public:
 	 , gamma(_gamma)
 	 , brightness(_brightness)
 	 , pixelClockKHz(_pixelClockKHz)
+	 , desiredAverageGreyValue(_desiredAverageGreyValue)
 	{
 
 	}
@@ -44,6 +46,7 @@ public:
 	uint32_t getGamma(void) const { return gamma; }
 	uint32_t getBrightness(void) const { return brightness; }
 	uint32_t getPixelClockKHz(void) const { return pixelClockKHz; }
+	uint32_t getDesiredAverageGreyValue(void) const { return desiredAverageGreyValue; }
 
 	void setMode(Mode _mode) { mode = _mode; }
 	void setFrameRate(float fps) { frameRate = fps; }
@@ -53,6 +56,7 @@ public:
 	void setGamma(uint32_t _gamma) { gamma = _gamma; }
 	void setBrightness(uint32_t _brightness) { brightness = _brightness; }
 	void setPixelClockKHz(uint32_t _pixelClockKHz) { pixelClockKHz = _pixelClockKHz; }
+	void setDesiredAverageGreyValue(uint32_t _desiredAverageGreyValue) { desiredAverageGreyValue = _desiredAverageGreyValue; }
 
 private:
 	Mode mode;
@@ -63,6 +67,7 @@ private:
 	uint32_t gamma;
 	uint32_t brightness;
 	uint32_t pixelClockKHz;
+	uint32_t desiredAverageGreyValue;
 };
 
 class PxCamera

@@ -77,6 +77,11 @@ PxBluefoxCamera::setConfig(const PxCameraConfig& config, bool master)
         return false;
     }
 
+    if (!setDesiredAverageGreyValue(config.getDesiredAverageGreyValue()))
+    {
+        return false;
+    }
+
     if (master && config.getExternalTrigger())
     {
         if (!setExternalTrigger())
@@ -505,6 +510,16 @@ PxBluefoxCamera::setPixelClock(uint32_t pixelClockKHz)
                         e.getErrorCodeAsString().c_str());
         return false;
     }
+
+    return true;
+}
+
+bool
+PxBluefoxCamera::setDesiredAverageGreyValue(uint32_t averageGreyValue)
+{
+    int desiredAverageGreyValue = desiredAverageGreyValue;
+
+    cameraSettings->autoControlParameters.desiredAverageGreyValue.write(50);
 
     return true;
 }
