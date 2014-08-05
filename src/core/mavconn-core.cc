@@ -106,16 +106,16 @@ system_state_t static inline mk_system_state_t()
 
 
 // Settings
-int systemid = getSystemID();		///< The unique system id of this MAV, 0-255. Has to be consistent across the system
-int compid = MAV_COMP_ID_SYSTEM_CONTROL;		///< The unique component id of this process.
-int systemType = MAV_TYPE_QUADROTOR;		///< The system type
-bool silent = false;				///< Wether console output should be enabled
-bool verbose = false;				///< Enable verbose output
-bool emitHeartbeat = false;			///< Generate a heartbeat with this process
-bool emitLoad = false;				///< Emit CPU load as debug message 101
-bool debug = false;					///< Enable debug functions and output
-bool cpu_performance = false;		///< Set CPU to performance mode (needs root)
-bool simulate_vision_with_gps = false;	///< Simulates vision with gps data (distorted and delayed)
+gint systemid = getSystemID();		///< The unique system id of this MAV, 0-255. Has to be consistent across the system
+gint compid = MAV_COMP_ID_SYSTEM_CONTROL;		///< The unique component id of this process.
+gint systemType = MAV_TYPE_QUADROTOR;		///< The system type
+gboolean silent = false;				///< Wether console output should be enabled
+gboolean verbose = false;				///< Enable verbose output
+gboolean emitHeartbeat = false;			///< Generate a heartbeat with this process
+gboolean emitHealth = false;				///< Emit CPU load as debug message 101
+gboolean debug = false;					///< Enable debug functions and output
+gboolean cpu_performance = false;		///< Set CPU to performance mode (needs root)
+gboolean simulate_vision_with_gps = false;	///< Simulates vision with gps data (distorted and delayed)
 
 mavlink_heartbeat_t heartbeat;
 
@@ -246,7 +246,7 @@ static void mavlink_handler(const lcm_recv_buf_t *rbuf, const char * channel,con
 				mavlink_msg_local_position_ned_decode(msg, &pos);
 
 				gettimeofday(&tv, NULL);
-				uint64_t currTime =  ((uint64_t)tv.tv_sec) * 1000000 + tv.tv_usec;
+				currTime =  ((uint64_t)tv.tv_sec) * 1000000 + tv.tv_usec;
 
 				if (currTime - last_sim > 1000000)
 				{
@@ -355,14 +355,14 @@ int main (int argc, char ** argv)
 	// Handling Program options
 	static GOptionEntry entries[] =
 	{
-			{ "sysid", 'a', 0, G_OPTION_ARG_INT, &systemid, "ID of this system", NULL },
-			{ "compid", 'c', 0, G_OPTION_ARG_INT, &compid, "ID of this component", NULL },
-			{ "heartbeat", NULL, 0, G_OPTION_ARG_NONE, &emitHeartbeat, "Emit Heartbeat", (emitHeartbeat) ? "on" : "off" },
-			{ "cpu", NULL, 0, G_OPTION_ARG_NONE, &cpu_performance, "Set CPU to performance mode", NULL },
-			{ "load", 'l', 0, G_OPTION_ARG_NONE, &emitLoad, "Emit CPU load as debug message 101", NULL },
+			{ "heartbeat", 0, 0, G_OPTION_ARG_NONE, &emitHeartbeat, "Emit Heartbeat", NULL },
+			{ "cpu", 'u', 0, G_OPTION_ARG_NONE, &cpu_performance, "Set CPU to performance mode", NULL },
+			{ "health", 0, 0, G_OPTION_ARG_NONE, &emitHealth, "Emit system health", NULL },
 			{ "silent", 's', 0, G_OPTION_ARG_NONE, &silent, "Be silent", NULL },
 			{ "verbose", 'v', 0, G_OPTION_ARG_NONE, &verbose, "Be verbose", NULL },
 			{ "debug", 'd', 0, G_OPTION_ARG_NONE, &debug, "Debug mode, changes behaviour", NULL },
+			{ "sysid", 'a', 0, G_OPTION_ARG_INT, &systemid, "ID of this system", NULL },
+			{ "compid", 'c', 0, G_OPTION_ARG_INT, &compid, "ID of this component", NULL },
 			{ NULL }
 	};
 
@@ -421,7 +421,7 @@ int main (int argc, char ** argv)
 	glibtop_proclist proclist;
 	glibtop_netload netload;
 
-	const char *net_device = "eth0";
+	const char *net_device = "eno1";
 
 	glibtop_get_netload(&netload, net_device);
 	uint64_t old_bytes_in = netload.bytes_in;
@@ -431,16 +431,16 @@ int main (int argc, char ** argv)
 	uint64_t old_total = cpu.total;
 	uint64_t old_idle = cpu.idle;
 
-	uint8_t baseMode;
-	uint8_t customMode;
-	uint8_t systemStatus;
+	uint8_t baseMode = 0;
+	uint8_t customMode = 0;
+	uint8_t systemStatus = 0;
 
 	printf("\nPX SYSTEM CONTROL STARTED ON MAV %d (COMPONENT ID:%d) - RUNNING..\n\n", systemid, compid);
 
 	while (1)
 	{
 		gettimeofday(&tv, NULL);
-		uint64_t currTime =  ((uint64_t)tv.tv_sec) * 1000000 + tv.tv_usec;
+		currTime =  ((uint64_t)tv.tv_sec) * 1000000 + tv.tv_usec;
 
 		if (currTime - lastTime > 1000000)
 		{
@@ -474,7 +474,7 @@ int main (int argc, char ** argv)
 				sendMAVLinkMessage(lcm, &msg);
 			}
 
-			if (emitLoad)
+			if (emitHealth)
 			{
 				// GET SYSTEM INFORMATION
 				glibtop_get_cpu (&cpu);
@@ -509,9 +509,7 @@ int main (int argc, char ** argv)
 				float disk_total_gb = ((float)fiData.f_blocks*fiData.f_bsize)/1024/1024/1024;
 
 
-				cout << "\nBlock size: "<< fiData.f_bsize;
-				cout << "\nTotal no blocks: "<< fiData.f_blocks;
-				cout << "\nFree blocks: "<< fiData.f_bfree;
+
 
 				// get temperature on Odroid XU
 				ifstream rawavg("/sys/devices/virtual/thermal/thermal_zone0/temp");
@@ -523,6 +521,10 @@ int main (int argc, char ** argv)
 
 				if (verbose)
 				{
+                    cout << "\nBlock size: "<< fiData.f_bsize;
+                    cout << "\nTotal no blocks: "<< fiData.f_blocks;
+                    cout << "\nFree blocks: "<< fiData.f_bfree;
+
 					printf("CPU TYPE INFORMATIONS \n\n"
 							"Cpu Total : %ld \n"
 							"Cpu User : %ld \n"
