@@ -357,7 +357,7 @@ int main(int argc, char* argv[])
     paramClient->setParamValue("EXPOSURE", exposure);
     paramClient->setParamValue("GAIN", gain);
     paramClient->setParamValue("PIXELCLOCKKHZ", pixelClockKHz);
-    paramClient->setParamValue("DESIRAVEGREYVAL", desiredAverageGreyValue);
+    paramClient->setParamValue("AVGGREYVAL", desiredAverageGreyValue);
     paramClient->readParamsFromFile(configFile);
 
 	//========= Initialize capture devices =========
@@ -471,7 +471,9 @@ int main(int argc, char* argv[])
 	{
 		mode = PxCameraConfig::AUTO_MODE;
 	}
-	PxCameraConfig config(mode, frameRate, trigger, exposure, gain, gamma, pixelClockKHz, desiredAverageGreyValue);
+    // XXX: brightness param not used
+    uint32_t brightness = 100;
+	PxCameraConfig config(mode, frameRate, trigger, exposure, gain, gamma, brightness, pixelClockKHz, desiredAverageGreyValue);
 
 	if (useStereo)
 	{
@@ -753,7 +755,7 @@ int main(int argc, char* argv[])
 		uint32_t newExposureTime = (uint32_t)paramClient->getParamValue("EXPOSURE");
 		uint32_t newGain = (uint32_t)paramClient->getParamValue("GAIN");
 		uint32_t newPixelClockKHz = (uint32_t)paramClient->getParamValue("PIXELCLOCKKHZ");
-		uint32_t newDesiredAverageGreyValue = (uint32_t)paramClient->getParamValue("DESIRAVEGREYVAL");
+		uint32_t newDesiredAverageGreyValue = (uint32_t)paramClient->getParamValue("AVGGREYVAL");
 		if (newExposureTime != config.getExposureTime())
 		{
 			config.setExposureTime(newExposureTime);

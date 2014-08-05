@@ -6,6 +6,7 @@ PxBluefoxCamera::PxBluefoxCamera(mvIMPACT::acquire::Device* _dev)
  : dev(_dev)
  , imageThread(0)
  , lastSequenceNum(0)
+ , lastFrameRate(0)
 {
     serialNum = atoi(_dev->serial.read().c_str());
 }
@@ -56,26 +57,27 @@ PxBluefoxCamera::destroy(void)
 bool
 PxBluefoxCamera::setConfig(const PxCameraConfig& config, bool master)
 {
-    if (!setMode(config.getMode()))
-    {
-        return false;
-    }
-    frameRate = config.getFrameRate();
-    timeout_ms = 1.0f / frameRate * 4000.0f;
-    if (master && !setFrameRate(frameRate))
-    {
-        return false;
-    }
-
-    if (!setGain(config.getGain()))
-    {
-        return false;
-    }
-
     if (!setPixelClock(config.getPixelClockKHz()))
     {
         return false;
     }
+
+    if (!setMode(config.getMode()))
+    {
+        return false;
+    }
+
+    frameRate = config.getFrameRate();
+    if (abs(lastFrameRate - frameRate) > 0.001)
+    {
+        timeout_ms = 1.0f / frameRate * 4000.0f;
+        if (master && !setFrameRate(frameRate))
+        {
+            return false;
+        }
+        lastFrameRate = frameRate;
+    }
+
 
     if (!setDesiredAverageGreyValue(config.getDesiredAverageGreyValue()))
     {
@@ -101,6 +103,11 @@ PxBluefoxCamera::setConfig(const PxCameraConfig& config, bool master)
         {
             return false;
         }
+        if (!setGain(config.getGain()))
+        {
+            return false;
+        }
+
     }
 
     return true;
@@ -444,7 +451,7 @@ PxBluefoxCamera::setGain(uint32_t gain)
     double gain_dB = 0.0;
     if (gain > 0)
     {
-        gain = 10.0 * log10(gain);
+        gain_dB = 10.0 * log10(gain);
     }
 
     return setGainDB(gain_dB);
@@ -480,6 +487,11 @@ bool
 PxBluefoxCamera::setPixelClock(uint32_t pixelClockKHz)
 {
     int pixelClock = pixelClockKHz;
+
+    if (cameraSettings->pixelClock_KHz.read() == pixelClock)
+    {
+        return true;
+    }
 
     try
     {
@@ -517,9 +529,7 @@ PxBluefoxCamera::setPixelClock(uint32_t pixelClockKHz)
 bool
 PxBluefoxCamera::setDesiredAverageGreyValue(uint32_t averageGreyValue)
 {
-    int desiredAverageGreyValue = desiredAverageGreyValue;
-
-    cameraSettings->autoControlParameters.desiredAverageGreyValue.write(50);
+    cameraSettings->autoControlParameters.desiredAverageGreyValue.write(averageGreyValue);
 
     return true;
 }

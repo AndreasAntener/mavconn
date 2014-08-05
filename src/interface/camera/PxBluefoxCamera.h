@@ -61,6 +61,8 @@ private:
     uint64_t serialNum;
     uint32_t lastSequenceNum;
 
+    float lastFrameRate;
+
     friend class PxBluefoxStereoCamera;
 };
 
