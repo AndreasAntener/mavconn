@@ -158,16 +158,42 @@ static void mavlink_handler(const lcm_recv_buf_t *rbuf, const char * channel,con
 			{
 			case MAV_CMD_PREFLIGHT_REBOOT_SHUTDOWN:
 			{
-				int ret = 0;
-				if (cmd.param2 == 2)
+                if (cmd.param2 == 2)
 				{
 					if (verbose) printf("Shutdown received, shutting down system\n");
-					ret = system ("halt");
-					if (ret) if (verbose) std::cerr << "Shutdown failed." << std::endl;
+                    if (cmd.confirmation)
+                    {
+                        mavlink_message_t response;
+                        mavlink_command_ack_t ack;
+                        ack.command = cmd.command;
+						ack.result = 0;
+                        mavlink_msg_command_ack_encode(getSystemID(), compid, &response, &ack);
+                        sendMAVLinkMessage(lcm, &response);
+                    }
 				}
 				else if (cmd.param2 == 1)
 				{
 					if (verbose) printf("Reboot received, rebooting system\n");
+                    if (cmd.confirmation)
+                    {
+                        mavlink_message_t response;
+                        mavlink_command_ack_t ack;
+                        ack.command = cmd.command;
+						ack.result = 0;
+                        mavlink_msg_command_ack_encode(getSystemID(), compid, &response, &ack);
+                        sendMAVLinkMessage(lcm, &response);
+                    }
+				}
+                usleep(100000);
+
+				int ret = 0;
+                if (cmd.param2 == 2)
+				{
+					ret = system ("shutdown -P 0");
+					if (ret) if (verbose) std::cerr << "Shutdown failed." << std::endl;
+				}
+				else if (cmd.param2 == 1)
+				{
 					ret = system ("reboot");
 					if(ret) if (verbose) std::cerr << "Reboot failed." << std::endl;
 				}
