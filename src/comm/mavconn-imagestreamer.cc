@@ -128,7 +128,7 @@ static void image_handler (const lcm_recv_buf_t *rbuf, const char * channel, con
 		// Prepare and send acknowledgment packet
 		ack.type = static_cast<uint8_t>( DATA_TYPE_JPEG_IMAGE );
 		ack.size = static_cast<uint32_t>( jpg.size() );
-		ack.packets = static_cast<uint8_t>( ack.size/PACKET_PAYLOAD );
+		ack.packets = ack.size/PACKET_PAYLOAD;
 		if (ack.size % PACKET_PAYLOAD) { ++ack.packets; } // one more packet with the rest of data
 		ack.payload = static_cast<uint8_t>( PACKET_PAYLOAD );
 		ack.jpg_quality = req.jpg_quality;
@@ -140,13 +140,13 @@ static void image_handler (const lcm_recv_buf_t *rbuf, const char * channel, con
 
 		// Send image data (split up into smaller chunks first, then sent over MAVLink)
 		uint8_t data[PACKET_PAYLOAD];
-		uint16_t byteIndex = 0;
+		unsigned byteIndex = 0;
 		if (verbose) printf("there are %02d packets waiting to be sent (%05d bytes). start sending...\n", ack.packets, ack.size);
 
-		for (uint8_t i = 0; i < ack.packets; ++i)
+		for (unsigned k = 0; k < ack.packets; ++k)
 		{
 			// Copy PACKET_PAYLOAD bytes of image data to send buffer
-			for (uint8_t j = 0; j < PACKET_PAYLOAD; ++j)
+			for (unsigned j = 0; j < PACKET_PAYLOAD; ++j)
 			{
 				if (byteIndex < ack.size)
 				{
@@ -160,9 +160,9 @@ static void image_handler (const lcm_recv_buf_t *rbuf, const char * channel, con
 				++byteIndex;
 			}
 			// Send ENCAPSULATED_IMAGE packet
-			mavlink_msg_encapsulated_data_pack(sysid, compid, &tmp, i, data);
+			mavlink_msg_encapsulated_data_pack(sysid, compid, &tmp, k, data);
 			sendMAVLinkMessage(lcmMavlink, &tmp);
-			if (verbose) printf("sent packet %02d successfully\n", i+1);
+			if (verbose) printf("sent packet %02d successfully\n", k+1);
 		}
 	}
 	}
