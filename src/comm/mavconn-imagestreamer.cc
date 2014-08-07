@@ -116,7 +116,7 @@ static void image_handler (const lcm_recv_buf_t *rbuf, const char * channel, con
 		//{
 		//	req.jpg_quality = 100;
 		//}
-		req.jpg_quality = 25;
+		req.jpg_quality = 50;
 
 		// Encode image as JPEG
 		vector<uint8_t> jpg; ///< container for JPEG image data
