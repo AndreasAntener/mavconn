@@ -89,82 +89,83 @@ static void image_handler (const lcm_recv_buf_t *rbuf, const char * channel, con
 	//cv::Mat img( 480, 640, CV_8UC1 );
 	//cv::Mat img2( 480, 640, CV_8UC1 );	// img2 not used.
 
-	for(size_t i = 0; i < clientVec->size(); ++i){
+	for(size_t i = 0; i < clientVec->size(); ++i)
+    {
 		px::SHMImageClient& client = clientVec->at(i);
-                if ((client.getCameraConfig() & px::SHMImageClient::getCameraNo(msg)) != px::SHMImageClient::getCameraNo(msg))
-                         continue;
+        if ((client.getCameraConfig() & px::SHMImageClient::getCameraNo(msg)) != px::SHMImageClient::getCameraNo(msg))
+            continue;
 
-	// Check if there are images
-	uint64_t camId = client.getCameraID(msg);
+        // Check if there are images
+        uint64_t camId = client.getCameraID(msg);
 
-	if (camId != 0)
-	{
-		// Copy one image from shared buffer
-		//if (!client.readStereoImage(msg, img, img2))
-		//{
-			if(!client.readMonoImage(msg,img))
-			{
-				continue;
-			}
-			//std::cout << "Size: " << img.size() << " Channels: " << img.channels() << std::endl;
-		//}
+        if (camId != 0)
+        {
+            // Copy one image from shared buffer
+            //if (!client.readStereoImage(msg, img, img2))
+            //{
+                if(!client.readMonoImage(msg,img))
+                {
+                    continue;
+                }
+                //std::cout << "Size: " << img.size() << " Channels: " << img.channels() << std::endl;
+            //}
 
-		captureImage = false;
+            captureImage = false;
 
-		// Check for valid jpg_quality in request and adjust if necessary
-		//if (req.jpg_quality < 1 && req.jpg_quality > 100)
-		//{
-		//	req.jpg_quality = 100;
-		//}
-		req.jpg_quality = 50;
+            // Check for valid jpg_quality in request and adjust if necessary
+            //if (req.jpg_quality < 1 && req.jpg_quality > 100)
+            //{
+            //	req.jpg_quality = 100;
+            //}
+            req.jpg_quality = 50;
 
-		// Encode image as JPEG
-		vector<uint8_t> jpg; ///< container for JPEG image data
-		vector<int> p (2); ///< params for cv::imencode. Sets the JPEG quality.
-		p[0] = CV_IMWRITE_JPEG_QUALITY;
-		p[1] = req.jpg_quality;
-		cv::imencode(".jpg", img, jpg, p);
+            // Encode image as JPEG
+            vector<uint8_t> jpg; ///< container for JPEG image data
+            vector<int> p (2); ///< params for cv::imencode. Sets the JPEG quality.
+            p[0] = CV_IMWRITE_JPEG_QUALITY;
+            p[1] = req.jpg_quality;
+            cv::imencode(".jpg", img, jpg, p);
 
-		// Prepare and send acknowledgment packet
-		ack.type = static_cast<uint8_t>( DATA_TYPE_JPEG_IMAGE );
-		ack.size = static_cast<uint32_t>( jpg.size() );
-		ack.packets = ack.size/PACKET_PAYLOAD;
-		if (ack.size % PACKET_PAYLOAD) { ++ack.packets; } // one more packet with the rest of data
-		ack.payload = static_cast<uint8_t>( PACKET_PAYLOAD );
-		ack.jpg_quality = req.jpg_quality;
-		ack.width = 1280;
-		ack.height = 960;
+            // Prepare and send acknowledgment packet
+            ack.type = static_cast<uint8_t>( DATA_TYPE_JPEG_IMAGE );
+            ack.size = static_cast<uint32_t>( jpg.size() );
+            ack.packets = ack.size/PACKET_PAYLOAD;
+            if (ack.size % PACKET_PAYLOAD) { ++ack.packets; } // one more packet with the rest of data
+            ack.payload = static_cast<uint8_t>( PACKET_PAYLOAD );
+            ack.jpg_quality = req.jpg_quality;
+            ack.width = 1280;
+            ack.height = 960;
 
-		mavlink_msg_data_transmission_handshake_encode(sysid, compid, &tmp, &ack);
-		sendMAVLinkMessage(lcmMavlink, &tmp);
+            mavlink_msg_data_transmission_handshake_encode(sysid, compid, &tmp, &ack);
+            sendMAVLinkMessage(lcmMavlink, &tmp);
 
-		// Send image data (split up into smaller chunks first, then sent over MAVLink)
-		uint8_t data[PACKET_PAYLOAD];
-		unsigned byteIndex = 0;
-		if (verbose) printf("there are %02d packets waiting to be sent (%05d bytes). start sending...\n", ack.packets, ack.size);
+            // Send image data (split up into smaller chunks first, then sent over MAVLink)
+            uint8_t data[PACKET_PAYLOAD];
+            unsigned byteIndex = 0;
+            if (verbose) printf("there are %02d packets waiting to be sent (%05d bytes). start sending...\n", ack.packets, ack.size);
 
-		for (unsigned k = 0; k < ack.packets; ++k)
-		{
-			// Copy PACKET_PAYLOAD bytes of image data to send buffer
-			for (unsigned j = 0; j < PACKET_PAYLOAD; ++j)
-			{
-				if (byteIndex < ack.size)
-				{
-					data[j] = (uint8_t)jpg[byteIndex];
-				}
-				// fill packet data with padding bits
-				else
-				{
-					data[j] = 0;
-				}
-				++byteIndex;
-			}
-			// Send ENCAPSULATED_IMAGE packet
-			mavlink_msg_encapsulated_data_pack(sysid, compid, &tmp, k, data);
-			sendMAVLinkMessage(lcmMavlink, &tmp);
-			if (verbose) printf("sent packet %02d successfully\n", k+1);
-		}
-	}
+            for (unsigned k = 0; k < ack.packets; ++k)
+            {
+                // Copy PACKET_PAYLOAD bytes of image data to send buffer
+                for (unsigned j = 0; j < PACKET_PAYLOAD; ++j)
+                {
+                    if (byteIndex < ack.size)
+                    {
+                        data[j] = (uint8_t)jpg[byteIndex];
+                    }
+                    // fill packet data with padding bits
+                    else
+                    {
+                        data[j] = 0;
+                    }
+                    ++byteIndex;
+                }
+                // Send ENCAPSULATED_IMAGE packet
+                mavlink_msg_encapsulated_data_pack(sysid, compid, &tmp, k, data);
+                sendMAVLinkMessage(lcmMavlink, &tmp);
+                if (verbose) printf("sent packet %02d successfully\n", k+1);
+            }
+        }
 	}
 }
 
