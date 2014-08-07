@@ -755,6 +755,7 @@ int main(int argc, char* argv[])
 		uint32_t newExposureTime = (uint32_t)paramClient->getParamValue("EXPOSURE");
 		uint32_t newGain = (uint32_t)paramClient->getParamValue("GAIN");
 		uint32_t newPixelClockKHz = (uint32_t)paramClient->getParamValue("PIXELCLOCKKHZ");
+		newPixelClockKHz = 40000;
 		uint32_t newDesiredAverageGreyValue = (uint32_t)paramClient->getParamValue("AVGGREYVAL");
 		if (newExposureTime != config.getExposureTime())
 		{

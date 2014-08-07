@@ -23,7 +23,7 @@ public:
 				   uint32_t _gain = 120,
 				   uint32_t _gamma = 0,
 				   uint32_t _brightness = 2047,
-				   uint32_t _pixelClockKHz = 12000,
+				   uint32_t _pixelClockKHz = 40000,
 				   uint32_t _desiredAverageGreyValue = 100)
 	 : mode(_mode)
 	 , frameRate(_frameRate)
