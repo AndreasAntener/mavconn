@@ -529,7 +529,7 @@ PxBluefoxCamera::setPixelClock(uint32_t pixelClockKHz)
 bool
 PxBluefoxCamera::setDesiredAverageGreyValue(uint32_t averageGreyValue)
 {
-    //cameraSettings->autoControlParameters.desiredAverageGreyValue.write(averageGreyValue);
+    cameraSettings->autoControlParameters.desiredAverageGreyValue.write(averageGreyValue);
 
     return true;
 }
