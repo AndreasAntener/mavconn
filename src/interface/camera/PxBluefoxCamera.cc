@@ -97,13 +97,14 @@ PxBluefoxCamera::setConfig(const PxCameraConfig& config, bool master)
         return false;
     }
 
+    if (!setGain(config.getGain()))
+    {
+        return false;
+    }
+
     if (config.getMode() != PxCameraConfig::AUTO_MODE)
     {
         if (!setExposureTime(config.getExposureTime()))
-        {
-            return false;
-        }
-        if (!setGain(config.getGain()))
         {
             return false;
         }
@@ -478,6 +479,8 @@ PxBluefoxCamera::setGainDB(float gain_dB)
         gain_dB = maxGain_dB;
     }
 
+
+    fprintf(stderr, "# INFO: Setting gain to %.1f dB.\n", gain_dB);
     cameraSettings->gain_dB.write(gain_dB);
 
     return true;
