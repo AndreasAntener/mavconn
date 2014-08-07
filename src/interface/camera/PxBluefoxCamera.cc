@@ -403,14 +403,14 @@ PxBluefoxCamera::setMode(PxCameraConfig::Mode mode)
             // configure auto control settings
             if (cameraSettings->autoControlParameters.isAvailable())
             {
-                cameraSettings->autoControlParameters.controllerSpeed.write(mvIMPACT::acquire::acsUserDefined);
-                cameraSettings->autoControlParameters.controllerGain.write(0.5);
-                cameraSettings->autoControlParameters.controllerIntegralTime_ms.write(1000.0);
-                cameraSettings->autoControlParameters.controllerDerivativeTime_ms.write(0.0);
-                cameraSettings->autoControlParameters.controllerDelay_Images.write(0);
+                cameraSettings->autoControlParameters.controllerSpeed.write(mvIMPACT::acquire::acsMedium);
+                //cameraSettings->autoControlParameters.controllerGain.write(0.5);
+                //cameraSettings->autoControlParameters.controllerIntegralTime_ms.write(5.0);
+                //cameraSettings->autoControlParameters.controllerDerivativeTime_ms.write(0.0);
+                //cameraSettings->autoControlParameters.controllerDelay_Images.write(0);
                 cameraSettings->autoControlParameters.exposeLowerLimit_us.write(20);
                 cameraSettings->autoControlParameters.exposeUpperLimit_us.write(25000);
-                cameraSettings->autoControlParameters.desiredAverageGreyValue.write(50);
+                cameraSettings->autoControlParameters.desiredAverageGreyValue.write(100);
             }
 
             cameraSettings->autoControlMode.write(mvIMPACT::acquire::acmStandard);
@@ -529,7 +529,7 @@ PxBluefoxCamera::setPixelClock(uint32_t pixelClockKHz)
 bool
 PxBluefoxCamera::setDesiredAverageGreyValue(uint32_t averageGreyValue)
 {
-    cameraSettings->autoControlParameters.desiredAverageGreyValue.write(averageGreyValue);
+    //cameraSettings->autoControlParameters.desiredAverageGreyValue.write(averageGreyValue);
 
     return true;
 }
