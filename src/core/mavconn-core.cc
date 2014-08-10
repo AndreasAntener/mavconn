@@ -512,7 +512,7 @@ int main (int argc, char ** argv)
 				old_total = cpu.total;
 				old_idle = cpu.idle;
 
-				float memory_percent = ((float)memory.used/(float)memory.total) * 100.0f;
+				float memory_percent = ((float)memory.user/(float)memory.total) * 100.0f;
 
 				float swap_percent = ((float)swap.used/(float)swap.total) * 100.0f;
 
@@ -533,8 +533,6 @@ int main (int argc, char ** argv)
 				float disk_usage_percent = ((float)(fiData.f_blocks - fiData.f_bfree)/(float)fiData.f_blocks)*100.0f;
 				float disk_usage_gb = ((float)(fiData.f_blocks - fiData.f_bfree)*fiData.f_bsize)/1024/1024/1024;
 				float disk_total_gb = ((float)fiData.f_blocks*fiData.f_bsize)/1024/1024/1024;
-
-
 
 
 				// get CPU temperature on Odroid XU
