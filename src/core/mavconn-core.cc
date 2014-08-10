@@ -537,8 +537,10 @@ int main (int argc, char ** argv)
 
 
 
-				// get temperature on Odroid XU
-				ifstream rawavg("/sys/devices/virtual/thermal/thermal_zone0/temp");
+				// get CPU temperature on Odroid XU
+				//ifstream rawavg("/sys/devices/virtual/thermal/thermal_zone0/temp");
+                // get temperature of core 1 on Intel NUC (i5)
+				ifstream rawavg("/sys/class/hwmon/hwmon0/temp1_input");
 				string temp;
 				getline(rawavg, temp);
 				float temp_c = (float)(atoi(temp.c_str())/1000);
