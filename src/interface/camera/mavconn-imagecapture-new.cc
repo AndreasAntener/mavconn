@@ -88,6 +88,8 @@ string calibStrDirection1;
 string calibStrLeftDirection1;
 string calibStrRightDirection1;
 
+string imageFormat;
+
 uint64_t imgNum = 0;
 
 bool recordData = false;
@@ -137,7 +139,8 @@ static void image_writer (void)
 		writeData *data = (writeData *) g_async_queue_pop(image_write_queue);
 
 		char fileName[128];
-		sprintf(fileName, "%llu.bmp", (long long unsigned)data->timestamp);
+
+		sprintf(fileName, "%llu.%s", (long long unsigned)data->timestamp, imageFormat.c_str());
 
 		std::string strDirection;
 		if (data->direction == 0)
@@ -295,7 +298,7 @@ void image_handler(const lcm_recv_buf_t* rbuf, const char* channel, const mavcon
 
 			data->local_x_gps_raw = local_x_gps_raw;
 			data->local_y_gps_raw = local_y_gps_raw;
-			data->local_z_gps_raw = local_z_gps_raw;			
+			data->local_z_gps_raw = local_z_gps_raw;
 
 			gotFirstImage = true;
 
@@ -585,7 +588,7 @@ static void mavlink_handler (const lcm_recv_buf_t *rbuf, const char * channel, c
 			}
 		}
 		break;
-			
+
 		case MAVLINK_MSG_ID_ATTITUDE:
 		{
 			if (mavlink_msg->compid == imuid)
@@ -647,6 +650,7 @@ int main(int argc, char* argv[])
 		("imuid,i", config::value<int>(&imuid)->default_value(imuid), "ID of paired IMU")
 		("calib_down", config::value<string>(&calibStrDirection0)->default_value(""), "Path to calibration of the down camera (*.scf for stereo, *.cal for mono)")
 		("calib_front", config::value<string>(&calibStrDirection1)->default_value(""), "Path to calibration of the front camera (*.scf for stereo, *.cal for mono)")
+		("format", config::value<string>(&imageFormat)->default_value("bmp"), "Image save format (bmp or jpg)")
 		("silent,s", config::bool_switch(&silent)->default_value(false), "suppress outputs")
 		("verbose,v", config::bool_switch(&verbose)->default_value(false), "verbose output")
 		("debug,d", config::bool_switch(&debug)->default_value(false), "debug output")
