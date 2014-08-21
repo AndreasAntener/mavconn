@@ -141,9 +141,6 @@ static void mavlink_handler (const lcm_recv_buf_t *rbuf, const char * channel,
 					|| msg->msgid == MAVLINK_MSG_ID_VICON_POSITION_ESTIMATE
 					|| msg->msgid == MAVLINK_MSG_ID_PING
 					|| msg->msgid == MAVLINK_MSG_ID_STATUSTEXT
-					|| msg->msgid == MAVLINK_MSG_ID_SET_LOCAL_POSITION_SETPOINT
-					|| msg->msgid == MAVLINK_MSG_ID_SET_GLOBAL_POSITION_SETPOINT_INT
-                    || msg->msgid == MAVLINK_MSG_ID_SET_POSITION_CONTROL_OFFSET
                     || msg->msgid == MAVLINK_MSG_ID_OPTICAL_FLOW
                     //|| msg->msgid == MAVLINK_MSG_ID_DATA_TRANSMISSION_HANDSHAKE
                     //|| msg->msgid == MAVLINK_MSG_ID_ENCAPSULATED_DATA
@@ -190,14 +187,11 @@ static void mavlink_handler (const lcm_recv_buf_t *rbuf, const char * channel,
 			|| msg->msgid == MAVLINK_MSG_ID_SYS_STATUS
 			|| msg->msgid == MAVLINK_MSG_ID_SYSTEM_TIME
 			|| msg->msgid == MAVLINK_MSG_ID_POSITION_CONTROL_SETPOINT
-			|| msg->msgid == MAVLINK_MSG_ID_ROLL_PITCH_YAW_SPEED_THRUST_SETPOINT
-			|| msg->msgid == MAVLINK_MSG_ID_ROLL_PITCH_YAW_THRUST_SETPOINT
 			|| msg->msgid == MAVLINK_MSG_ID_DEBUG
 			|| msg->msgid == MAVLINK_MSG_ID_DEBUG_VECT
 			|| msg->msgid == MAVLINK_MSG_ID_GPS_STATUS
 			|| msg->msgid == MAVLINK_MSG_ID_GLOBAL_POSITION_INT
 			|| msg->msgid == MAVLINK_MSG_ID_LOCAL_POSITION_NED
-			|| msg->msgid == MAVLINK_MSG_ID_LOCAL_POSITION_SETPOINT
 			|| msg->msgid == MAVLINK_MSG_ID_ATTITUDE
 			|| msg->msgid == MAVLINK_MSG_ID_DETECTION_STATS
 			|| msg->msgid == MAVLINK_MSG_ID_ONBOARD_HEALTH)
