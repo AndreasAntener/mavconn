@@ -384,6 +384,8 @@ void send_setpoint(void)
 *  @param seq The waypoint sequence number the MAV should fly to.
 */
 {
+#warning deactivated due to new mavlink specs
+#if 0
 	if(valid_destination_available==true)
 	{
         mavlink_message_t msg;
@@ -419,6 +421,7 @@ void send_setpoint(void)
 	{
 		 if (debug) printf("No new set point sent, because no valid destination available yet\n");
 	}
+#endif
 }
 
 void send_mission_count(uint8_t target_systemid, uint8_t target_compid, uint16_t count)

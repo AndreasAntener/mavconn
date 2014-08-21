@@ -130,6 +130,8 @@ void send_waypoint_current(uint16_t seq)
 */
 void send_setpoint(uint16_t seq)
 {
+#warning deactivated due to new mavlink messages
+#if 0
     if(seq < waypoints->size())
     {
         mavlink_mission_item_t *cur = waypoints->at(seq);
@@ -167,6 +169,7 @@ void send_setpoint(uint16_t seq)
     {
         if (verbose) printf("ERROR: index out of bounds\n");
     }
+#endif
 }
 
 void send_waypoint_count(uint8_t target_systemid, uint8_t target_compid, uint16_t count)
