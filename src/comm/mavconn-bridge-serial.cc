@@ -94,6 +94,10 @@ lcm_t* lcm;               ///< Reference to LCM bus
 #define B921600 921600
 #endif
 
+#ifndef B230400
+#define B230400 230400
+#endif
+
 /**
 * @brief Handle a MAVLINK message received from LCM
 *
@@ -367,6 +371,13 @@ bool setup_port(int fd, int baud, int data_bits, int stop_bits, bool parity, boo
 		break;
 	case 115200:
 		if (cfsetispeed(&config, B115200) < 0 || cfsetospeed(&config, B115200) < 0)
+		{
+			fprintf(stderr, "\nERROR: Could not set desired baud rate of %d Baud\n", baud);
+			return false;
+		}
+		break;
+	case 230400:
+		if (cfsetispeed(&config, B230400) < 0 || cfsetospeed(&config, B230400) < 0)
 		{
 			fprintf(stderr, "\nERROR: Could not set desired baud rate of %d Baud\n", baud);
 			return false;
