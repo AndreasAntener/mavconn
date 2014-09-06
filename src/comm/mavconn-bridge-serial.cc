@@ -178,6 +178,7 @@ static void mavlink_handler (const lcm_recv_buf_t *rbuf, const char * channel,
 			|| msg->msgid == MAVLINK_MSG_ID_GPS_GLOBAL_ORIGIN
 			|| msg->msgid == MAVLINK_MSG_ID_HEARTBEAT
 			|| msg->msgid == MAVLINK_MSG_ID_COMMAND_LONG
+			|| msg->msgid == MAVLINK_MSG_ID_COMMAND_INT
 			|| msg->msgid == MAVLINK_MSG_ID_PARAM_REQUEST_LIST
 			|| msg->msgid == MAVLINK_MSG_ID_PARAM_REQUEST_READ
 			|| msg->msgid == MAVLINK_MSG_ID_PARAM_SET
