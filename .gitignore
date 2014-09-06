@@ -8,3 +8,4 @@ release
 .project
 *~
 **.swp
+._.DS_Store
