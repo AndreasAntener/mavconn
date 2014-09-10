@@ -81,7 +81,7 @@ bool emitHeartbeat;       ///< Generate a heartbeat with this process
 bool debug;               ///< Enable debug functions and output
 bool test;                ///< Enable test mode
 bool pc2serial;			  ///< Enable PC to serial push mode (send more stuff from pc over serial)
-int ignoreCompid;	  ///< Don't forward messages to serial from this component ID, 0 to disable
+std::vector<int> ignoreCompIds; ///< Don't forward messages to serial from this component ID, 0 to disable
 
 lcm_t* lcm;               ///< Reference to LCM bus
 
@@ -97,6 +97,15 @@ lcm_t* lcm;               ///< Reference to LCM bus
 #ifndef B230400
 #define B230400 230400
 #endif
+
+bool ignore_component_id(int compid) {
+	for (std::vector<int>::iterator it = ignoreCompIds.begin() ; it != ignoreCompIds.end(); ++it) {
+		if(*it == compid) {
+			return true;
+		}
+	}
+	return false;
+}
 
 /**
 * @brief Handle a MAVLINK message received from LCM
@@ -201,7 +210,7 @@ static void mavlink_handler (const lcm_recv_buf_t *rbuf, const char * channel,
 			|| msg->msgid == MAVLINK_MSG_ID_DETECTION_STATS
 			|| msg->msgid == MAVLINK_MSG_ID_ONBOARD_HEALTH)
 		// and ignore msg with component ID of ignoreCompid
-		    && !(ignoreCompid != 0 && ignoreCompid == msg->compid)
+		    && !(ignore_component_id(msg->compid))
 		   )
 		{
 			if (verbose || debug)
@@ -570,7 +579,7 @@ int main(int argc, char* argv[])
 		("verbose,v", config::bool_switch(&verbose)->default_value(false), "verbose output")
 		("debug,d", config::bool_switch(&debug)->default_value(false), "Emit debug information")
 		("pc2serial", config::bool_switch(&pc2serial)->default_value(false), "Send more status information from PC over serial (for second XBee mode)")
-		("ignorecompid,i", config::value<int>(&ignoreCompid)->default_value(0), "Component ID not to forward over serial")
+ 		("ignorecompid,i", config::value<std::vector<int> >(&ignoreCompIds), "Component ID not to forward over serial")
 		;
 	config::variables_map vm;
 	config::store(config::parse_command_line(argc, argv, desc), vm);
