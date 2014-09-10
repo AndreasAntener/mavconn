@@ -72,6 +72,7 @@ bool emitHeartbeat; ///< tells the program to emit heart beats regularly
 bool dataOnly; ///< send only data, without video stream
 bool debug; ///< debug mode
 bool offboardLink; ///< connected to an offboard system such as a ground control station
+int ignoreCompid; ///< Don't forward messages to UDP from this component ID, 0 to disable
 
 int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 struct sockaddr_in gcAddr;
@@ -117,6 +118,16 @@ static void mavlink_handler(const lcm_recv_buf_t *rbuf, const char * channel,
     else
     {
         if (debug) printf("Keeping from sysid: %d\n", msg->sysid);
+    }
+
+    if (ignoreCompid != 0 && msg->compid == ignoreCompid)
+    {
+        if (debug) printf("Ignoring from compid: %d, ignoreCompid: %d\n", msg->compid, ignoreCompid);
+        return;
+    }
+    else
+    {
+        if (debug) printf("Keeping from compid: %d\n", msg->compid);
     }
 
 	if (msg->msgid != MAVLINK_MSG_ID_EXTENDED_MESSAGE)
@@ -264,6 +275,7 @@ int main(int argc, char* argv[])
 			{ "verbose", 'v', 0, G_OPTION_ARG_NONE, &verbose, "Be verbose", NULL },
 			{ "debug", 'd', 0, G_OPTION_ARG_NONE, &debug, "Debug mode, changes behaviour", NULL },
 			{ "offboard", 'f', 0, G_OPTION_ARG_NONE, &offboardLink, "Connected to an offboard system", NULL },
+			{ "ignorecompid", 'i', 0, G_OPTION_ARG_INT, &ignoreCompid, "Component ID not to forward over UDP", NULL },
             { NULL },
 	};
 
