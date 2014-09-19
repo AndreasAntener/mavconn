@@ -208,7 +208,9 @@ static void mavlink_handler (const lcm_recv_buf_t *rbuf, const char * channel,
 			|| msg->msgid == MAVLINK_MSG_ID_LOCAL_POSITION_NED
 			|| msg->msgid == MAVLINK_MSG_ID_ATTITUDE
 			|| msg->msgid == MAVLINK_MSG_ID_DETECTION_STATS
-			|| msg->msgid == MAVLINK_MSG_ID_ONBOARD_HEALTH)
+			|| msg->msgid == MAVLINK_MSG_ID_ONBOARD_HEALTH
+			|| msg->msgid == MAVLINK_MSG_ID_DATA_TRANSMISSION_HANDSHAKE
+			|| msg->msgid == MAVLINK_MSG_ID_ENCAPSULATED_DATA)
 		// and ignore msg with component ID of ignoreCompid
 		    && !(ignore_component_id(msg->compid))
 		   )
