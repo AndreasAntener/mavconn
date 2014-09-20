@@ -614,6 +614,10 @@ PxBluefoxCamera::convertToCvMat(const mvIMPACT::acquire::Request* request, cv::M
         cv::Mat tempChannels[4];
         // Get rid of the empty channel 4
         split(temp, &(tempChannels[0]));
+
+	// divide green by 2
+	tempChannels[1] /= 2;
+
         merge(tempChannels, 3, temp);
     }
 
