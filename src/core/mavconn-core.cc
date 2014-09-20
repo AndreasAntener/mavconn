@@ -108,7 +108,7 @@ system_state_t static inline mk_system_state_t()
 // Settings
 gint systemid = getSystemID();		///< The unique system id of this MAV, 0-255. Has to be consistent across the system
 gint compid = MAV_COMP_ID_SYSTEM_CONTROL;		///< The unique component id of this process.
-gint systemType = MAV_TYPE_QUADROTOR;		///< The system type
+gint systemType = MAV_TYPE_FIXED_WING;		///< The system type
 gboolean silent = false;				///< Wether console output should be enabled
 gboolean verbose = false;				///< Enable verbose output
 gboolean emitHeartbeat = false;			///< Generate a heartbeat with this process
